@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='cHc',
     version='0.1',
-    packages=find_packages(),
+    packages=["chc"],
     url='https://github.com/gabelstein/cHc',
     license='',
     author='Gabriel',

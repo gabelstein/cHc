@@ -5,8 +5,6 @@ from scipy.spatial import Delaunay
 
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.extmath import softmax
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import make_pipeline
 
 
 class CHC(BaseEstimator, ClassifierMixin, TransformerMixin):
@@ -85,7 +83,7 @@ class CHC(BaseEstimator, ClassifierMixin, TransformerMixin):
             the prediction for each trials according to the closest centroid.
         """
         # todo make decision what to decide when two class memberships
-        pred = np.ones((X_test.shape[0]))
+        pred = np.ones((X_test.shape[0]))*self.rest_class
         for cl, hull in self.hulls_.items():
             pred[hull.find_simplex(X_test) >= 0] = cl
 
