@@ -7,7 +7,6 @@ from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.extmath import softmax
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
-from joblib import Parallel, delayed
 
 
 class CHC(BaseEstimator, ClassifierMixin, TransformerMixin):
