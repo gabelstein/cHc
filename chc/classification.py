@@ -18,26 +18,14 @@ class CHC(BaseEstimator, ClassifierMixin, TransformerMixin):
 
     Parameters
     ----------
-    metric : string | dict (default: 'riemann')
-        The type of metric used for centroid and distance estimation.
-        see `mean_covariance` for the list of supported metric.
-        the metric could be a dict with two keys, `mean` and `distance` in
-        order to pass different metric for the centroid estimation and the
-        distance estimation. Typical usecase is to pass 'logeuclid' metric for
-        the mean in order to boost the computional speed and 'riemann' for the
-        distance in order to keep the good sensitivity for the classification.
-    n_jobs : int, (default: 1)
-        The number of jobs to use for the computation. This works by computing
-        each of the class centroid in parallel.
-        If -1 all CPUs are used. If 1 is given, no parallel computing code is
-        used at all, which is useful for debugging. For n_jobs below -1,
-        (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one
-        are used.
+    rest_class : string | int
+        The class to be used as the rest class.
+    hulls : dict, (default: {})
+        Optional: preprocessed hulls with class label as key and scipy.spatial.Delaunay
+        hull as value.
 
     Attributes
     ----------
-    covmeans_ : list
-        the class centroids.
     classes_ : list
         list of classes.
     """
@@ -45,10 +33,10 @@ class CHC(BaseEstimator, ClassifierMixin, TransformerMixin):
     def __init__(self, rest_class, hulls={}):
         """Init."""
         self.rest_class = rest_class
-        self.hulls_ = hulls
+        self.hulls = hulls
 
     def fit(self, X, y):
-        """Fit (estimates) the hull(s).
+        """Fit (estimates) the hull(s) for all classes but the rest class.
 
         Parameters
         ----------
@@ -65,7 +53,9 @@ class CHC(BaseEstimator, ClassifierMixin, TransformerMixin):
 
         self.classes_ = np.unique(y)
         hull_classes = np.delete(self.classes_, np.where(self.classes_ == self.rest_class))
-        self.hulls_ = {cl: Delaunay(X[y == cl]) for cl in hull_classes}
+
+        if self.hulls == {}:
+            self.hulls = {cl: Delaunay(X[y == cl]) for cl in hull_classes}
 
         return self
 
@@ -80,11 +70,11 @@ class CHC(BaseEstimator, ClassifierMixin, TransformerMixin):
         Returns
         -------
         pred : ndarray of int, shape (n_trials, 1)
-            the prediction for each trials according to the closest centroid.
+            the prediction for each trials according to membership in hull.
         """
-        # todo make decision what to decide when two class memberships
+        # TODO: make decision what to decide when two class memberships
         pred = np.ones((X_test.shape[0]))*self.rest_class
-        for cl, hull in self.hulls_.items():
+        for cl, hull in self.hulls.items():
             pred[hull.find_simplex(X_test) >= 0] = cl
 
         return pred
